@@ -23,11 +23,7 @@ public class DitheringConverter implements IImageProcessor {
     public static ImageData dither(ImageData inData, int imageType) {
         var outputImage = GrayScaleConverter.convert(inData, imageType);
 
-        int[][] ditherMatrix = {
-                {0, 0, 0, 8, 4},
-                {2, 4, 8, 4, 2},
-                {1, 2, 4, 2, 1}
-        };
+        var ditherMatrix = new int[] { 8, 4, 2, 4, 8, 4, 2, 1, 2, 4, 2, 1 };
 
         for (int y = 0; y < inData.height; y++) {
             for (int x = 0; x < inData.width; x++) {
@@ -37,7 +33,26 @@ public class DitheringConverter implements IImageProcessor {
                 outputImage.data[y * outputImage.bytesPerLine + x] = (byte)newGray;
 
                 int error = oldGray - newGray;
-                distributeError(outputImage, x, y, inData.width, inData.height, error, ditherMatrix);
+
+                for (int offset = 0; offset < ditherMatrix.length; offset++) {
+                    int offsetTest = offset + 3;
+                    int neighborX = x + (offsetTest % 5) - 2;
+                    int neighborY = y + (offsetTest / 5);
+
+                    if (neighborX >= 0 && neighborX < inData.width && neighborY >= 0 && neighborY < inData.height) {
+                        int gray = 0xFF & inData.data[neighborY * inData.bytesPerLine + neighborX];
+                        var newGray1 = gray + error * (double)(ditherMatrix[offset]) / 42;
+    
+                        if (newGray1 < 0) {
+                            newGray1 = 0;
+                        } else if (newGray1 > 255) {
+                            newGray1 = 255;
+                        }
+    
+                        int gray1 = ImageProcessing.clamp8(newGray1);
+                        inData.data[neighborY * inData.bytesPerLine + neighborX] = (byte)gray1;
+                    }
+                }
             }
         }
 
