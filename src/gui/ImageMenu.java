@@ -8,6 +8,7 @@ import imageprocessing.colors.ChannelRGBA;
 import imageprocessing.colors.DitheringConverter;
 import imageprocessing.colors.GrayScaleConverter;
 import imageprocessing.colors.Inverter;
+import imageprocessing.transformations.Rotator;
 
 /**
  * Image processing menu
@@ -29,6 +30,7 @@ public class ImageMenu extends UserMenu {
         add("&Invert\tF1",                       SWT.F1,         new Inverter());
         add("Grayscale",                         SWT.F2,         new GrayScaleConverter());
         add("Dithering",                         SWT.F3,         new DitheringConverter());
+        add("Rotator",                           SWT.F4,         new Rotator());
 
         UserMenu channels = addMenu("Channel");
         channels.add("R\tCtrl+1",                SWT.CTRL | '1', new ChannelRGBA(0));
