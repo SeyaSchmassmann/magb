@@ -1,0 +1,29 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Cube3D",
+            "request": "launch",
+            "mainClass": "org.lwjgl.demo.opengl.Cube3D",
+            "projectName": "OpenGL-Student"
+        },
+        {
+            "type": "java",
+            "name": "Gears3D",
+            "request": "launch",
+            "mainClass": "org.lwjgl.demo.opengl.Gears3D",
+            "projectName": "OpenGL-Student"
+        },
+        {
+            "type": "java",
+            "name": "Triangle2D",
+            "request": "launch",
+            "mainClass": "org.lwjgl.demo.opengl.Triangle2D",
+            "projectName": "OpenGL-Student"
+        }
+    ]
+}
