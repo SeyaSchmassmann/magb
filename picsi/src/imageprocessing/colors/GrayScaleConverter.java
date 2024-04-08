@@ -27,10 +27,12 @@ public class GrayScaleConverter implements IImageProcessor {
 	public static ImageData convert(ImageData inData, int imageType) {
         var grayScaleImage = ImageProcessing.createImage(inData.width, inData.height, Picsi.IMAGE_TYPE_GRAY);
 
+        double wr = 0.299, wg = 0.587, wb = 0.114;
+
         Parallel.For(0, inData.height, y -> {
             for (int x = 0; x < inData.width; x++) {
                 var rgb = inData.palette.getRGB(inData.getPixel(x, y));
-                int gray = ImageProcessing.clamp8(0.299 * rgb.red + 0.587 * rgb.green + 0.114 * rgb.blue);
+                int gray = ImageProcessing.clamp8(wr * rgb.red + wg * rgb.green + wb * rgb.blue);
                 grayScaleImage.setPixel(x, y, gray);
             }
         });

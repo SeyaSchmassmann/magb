@@ -49,12 +49,6 @@ public class DitheringConverter implements IImageProcessor {
                 int currentGray = 0xFF & outputImage.data[neighborY * outputImage.bytesPerLine + neighborX];
                 var grayWithError = currentGray + error * (double)(DITHER_MATRIX[i]) / 42;
 
-                if (grayWithError < 0) {
-                    grayWithError = 0;
-                } else if (grayWithError > 0xFF) {
-                    grayWithError = 0xFF;
-                }
-
                 int gray = ImageProcessing.clamp8(grayWithError);
                 outputImage.data[neighborY * outputImage.bytesPerLine + neighborX] = (byte)gray;
             }
