@@ -24,6 +24,13 @@
             "request": "launch",
             "mainClass": "org.lwjgl.demo.opengl.Triangle2D",
             "projectName": "OpenGL-Student"
+        },
+        {
+            "type": "java",
+            "name": "Hexaeder3D",
+            "request": "launch",
+            "mainClass": "org.lwjgl.demo.opengl.Hexaeder3D",
+            "projectName": "OpenGL-Student"
         }
     ]
 }

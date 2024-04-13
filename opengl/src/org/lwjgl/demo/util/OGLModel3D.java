@@ -1,7 +1,7 @@
 package org.lwjgl.demo.util;
 
 // https://javadoc.lwjgl.org/index.html?org/lwjgl/opengl/GL30.html
-	
+    
 import static org.lwjgl.demo.util.IOUtil.ioResourceToByteBuffer;
 import static org.lwjgl.opengl.GL11C.GL_CULL_FACE;
 import static org.lwjgl.opengl.GL11C.GL_DEPTH_TEST;
@@ -40,24 +40,24 @@ import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.system.MemoryStack;
 
 public abstract class OGLModel3D implements OGLModel {
-    protected int m_PROGRAM;	// OpenGL attribute identifiers
+    protected int m_PROGRAM;    // OpenGL attribute identifiers
     protected int m_POSITIONS;
     protected int m_NORMALS;
     
-    protected int u_VM;			// OpenGL uniform identifiers
+    protected int u_VM;         // OpenGL uniform identifiers
     protected int u_PVM;
     protected int u_LIGHT;
     protected int u_COLOR;
 
     protected final Matrix4d
         P   = new Matrix4d(),
-        PVM = new Matrix4d();	// Projection*View*Model transform for positions
+        PVM = new Matrix4d();    // Projection*View*Model transform for positions
     protected final Matrix4x3d
         V   = new Matrix4x3d(),
         M   = new Matrix4x3d(),
-        VM  = new Matrix4x3d();	// View*Model transform used for normals
+        VM  = new Matrix4x3d();    // View*Model transform used for normals
 
-	public void init(int width, int height) {
+    public void init(int width, int height) {
         GLCapabilities caps = GL.getCapabilities();
         if (!caps.OpenGL30) {
             throw new IllegalStateException("This demo requires OpenGL 3.0 or higher.");
@@ -101,10 +101,10 @@ public abstract class OGLModel3D implements OGLModel {
             int vao = glGenVertexArrays();
             glBindVertexArray(vao); // bind and forget
         }
-	}
-	
-	abstract public void render();
-	
+    }
+
+    abstract public void render();
+
     protected void setSize(int width, int height) {
         float h = height/(float)width;
 
@@ -171,6 +171,5 @@ public abstract class OGLModel3D implements OGLModel {
             System.out.format("%s\n", glGetProgramInfoLog(obj));
         }
     }
-
 
 }

@@ -1,9 +1,9 @@
-uniform vec4 u_COLOR;		// the same color for all fragments of a model
+uniform vec4 u_COLOR; // the same color for all fragments of a model
 
-in float v_Shade;			// shade of a fragment
+in float v_Shade; // shade of a fragment
 
 #if __VERSION__ < 330
-    out vec4 out_Color;		// resulting pixel color
+    out vec4 out_Color; // resulting pixel color
 #else
     layout(location = 0) out vec4 out_Color;
 #endif

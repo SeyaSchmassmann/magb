@@ -27,16 +27,16 @@ abstract public class OGLObject {
         m_color = BufferUtils.createFloatBuffer(4);
         m_color.put(color.toArray()).flip();
 
-        m_POSITION_VBO = glGenBuffers(); 	// generate one buffer object name
-        m_NORMAL_VBO = glGenBuffers();		// generate one buffer object name
+        m_POSITION_VBO = glGenBuffers(); // generate one buffer object name
+        m_NORMAL_VBO = glGenBuffers();   // generate one buffer object name
     }
     
     public int getVertexCount() { 
-    	return m_vertexCount; 
+        return m_vertexCount; 
     }
     
     public FloatBuffer getColor() { 
-    	return m_color; 
+        return m_color; 
     }
 
     public void setupPositions(int positionsID) {

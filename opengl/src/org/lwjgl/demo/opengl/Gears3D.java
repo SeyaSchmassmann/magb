@@ -36,55 +36,55 @@ import org.lwjgl.demo.util.OGLModel3D;
 import org.lwjgl.demo.util.OGLObject;
 
 public class Gears3D extends OGLApp<GearsModel> {
-	public Gears3D(GearsModel model) {
-		super(model);
-		
-		m_keyCallback = (window, key, scancode, action, mods) -> {
-			if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
-				glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
-			if (action == GLFW_PRESS) {
-				switch(key) {
-				case GLFW_KEY_LEFT: model.changeSpeed(1.0); break;
-				case GLFW_KEY_RIGHT: model.changeSpeed(-1.0); break;
-				case GLFW_KEY_UP: model.changeXangle(10.0); break;
-				case GLFW_KEY_DOWN: model.changeXangle(-10.0); break;
-				}
-			}
-		};
-	}
-	
-	public static void main(String[] args) {
-		new Gears3D(new GearsModel()).run("Gears", 640, 640, new Color4D(0.7f, 0.7f, 0.7f, 1));
-	}
+    public Gears3D(GearsModel model) {
+        super(model);
+        
+        m_keyCallback = (window, key, scancode, action, mods) -> {
+            if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
+                glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
+            if (action == GLFW_PRESS) {
+                switch(key) {
+                case GLFW_KEY_LEFT: model.changeSpeed(1.0); break;
+                case GLFW_KEY_RIGHT: model.changeSpeed(-1.0); break;
+                case GLFW_KEY_UP: model.changeXangle(10.0); break;
+                case GLFW_KEY_DOWN: model.changeXangle(-10.0); break;
+                }
+            }
+        };
+    }
+    
+    public static void main(String[] args) {
+        new Gears3D(new GearsModel()).run("Gears", 640, 640, new Color4D(0.7f, 0.7f, 0.7f, 1));
+    }
 }
 
 class GearsModel extends OGLModel3D {
-	final static double deg2rad = PI/180;
+    final static double deg2rad = PI/180;
 
-	private final Matrix3d m_vm = new Matrix3d();
-	private final Vector3d m_light  = new Vector3d();
-	private final FloatBuffer m_vec3f = BufferUtils.createFloatBuffer(3);
-	private final FloatBuffer m_mat3f = BufferUtils.createFloatBuffer(3*3);
-	private final FloatBuffer m_mat4f = BufferUtils.createFloatBuffer(4*4);
+    private final Matrix3d m_vm = new Matrix3d();
+    private final Vector3d m_light  = new Vector3d();
+    private final FloatBuffer m_vec3f = BufferUtils.createFloatBuffer(3);
+    private final FloatBuffer m_mat3f = BufferUtils.createFloatBuffer(3*3);
+    private final FloatBuffer m_mat4f = BufferUtils.createFloatBuffer(4*4);
 
-	private Gear m_gear1, m_gear2, m_gear3;
+    private Gear m_gear1, m_gear2, m_gear3;
     private double m_startTime = System.currentTimeMillis()/1000.0;
-    private double m_distance = 40.0f;	// camera distance
-    private double m_angle;				// degrees
-    private double m_deltaDeg =  2; 	// degrees
-    private double m_xAngle = 70;		// degrees
-    private long   m_count;				// fps
+    private double m_distance = 40.0f; // camera distance
+    private double m_angle;            // degrees
+    private double m_deltaDeg =  2;    // degrees
+    private double m_xAngle = 70;      // degrees
+    private long   m_count;            // fps
 
-	@Override
-	public void init(int width, int height) {
-		super.init(width, height);
+    @Override
+    public void init(int width, int height) {
+        super.init(width, height);
         m_gear1 = new Gear(1.0, 4.0, 1.0, 20, 0.7, new Color4D(0.8f, 0.1f, 0.0f, 1.0f));
         m_gear2 = new Gear(0.5, 2.0, 2.0, 10, 0.7, new Color4D(0.0f, 0.8f, 0.2f, 1.0f));
         m_gear3 = new Gear(1.3, 2.0, 0.5, 10, 0.7, new Color4D(0.2f, 0.2f, 1.0f, 1.0f));
-	}
+    }
 
-	@Override
-	public void render() {
+    @Override
+    public void render() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // VIEW
@@ -123,23 +123,23 @@ class GearsModel extends OGLModel3D {
         
         // animation
         m_angle += m_deltaDeg;
-	}
-	
-	public void changeSpeed(double delta) {
-		m_deltaDeg += delta;
-	}
-	
-	public void changeXangle(double delta) {
-		m_xAngle += delta;
-	}
+    }
+    
+    public void changeSpeed(double delta) {
+        m_deltaDeg += delta;
+    }
+    
+    public void changeXangle(double delta) {
+        m_xAngle += delta;
+    }
 
-	private void drawGear(Gear gear) {
-		// compute shader data structures
+    private void drawGear(Gear gear) {
+        // compute shader data structures
         glUniformMatrix3fv(u_VM, false, V.mul(M, VM).normal(m_vm).get(m_mat3f));
         glUniformMatrix4fv(u_PVM, false, P.mul(VM, PVM).get(m_mat4f)); // get: stores in and returns m_mat4f
         glUniform4fv(u_COLOR, gear.getColor());
 
-        gear.setupPositions(m_POSITIONS);	
+        gear.setupPositions(m_POSITIONS);    
         gear.setupNormals(m_NORMALS);
         glDrawArrays(GL_TRIANGLES, 0, gear.getVertexCount());
     }
@@ -150,10 +150,10 @@ class GearsModel extends OGLModel3D {
         private int m_quadCount;
         
         private Gear(double innerRadius, double outerRadius, double width, int teeth, double toothDepth, Color4D color) {
-        	super(color);
-        	
+            super(color);
+            
             allocatePositionBuffer(2000*3); // allocate vertex positions
-            allocateNormalBuffer(2000*3); 	// allocate vertex normals
+            allocateNormalBuffer(2000*3);     // allocate vertex normals
             build(innerRadius, outerRadius, width, teeth, toothDepth);
             bindPositionBuffer();           
             bindNormalBuffer();           
@@ -335,5 +335,5 @@ class GearsModel extends OGLModel3D {
         }
 
     }
-	
+    
 }
