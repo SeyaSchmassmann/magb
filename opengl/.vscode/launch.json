@@ -27,9 +27,9 @@
         },
         {
             "type": "java",
-            "name": "Hexaeder3D",
+            "name": "TruncatedIcosahedron",
             "request": "launch",
-            "mainClass": "org.lwjgl.demo.opengl.Hexaeder3D",
+            "mainClass": "org.lwjgl.demo.opengl.TruncatedIcosahedron",
             "projectName": "OpenGL-Student"
         }
     ]

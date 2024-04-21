@@ -51,7 +51,7 @@ import org.lwjgl.system.MemoryStack;
 public class OGLApp<M extends OGLModel> {
     private long m_window; // The window handle
     private M m_model;     // the model
-    
+
     protected org.lwjgl.glfw.GLFWKeyCallbackI m_keyCallback = (window, key, scancode, action, mods) -> {
         if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
             glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
@@ -60,7 +60,7 @@ public class OGLApp<M extends OGLModel> {
     public OGLApp(M model) {
         m_model = model;
     }
-    
+
     public void run(String title, int width, int height, Color4D bkgColor) {
         System.out.println(title + " " + Version.getVersion() + "!");
 
@@ -93,7 +93,7 @@ public class OGLApp<M extends OGLModel> {
         //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
         //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         // end Mac
-        
+
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // the window will stay hidden after creation
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
 

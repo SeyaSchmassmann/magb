@@ -26,7 +26,7 @@ import org.lwjgl.demo.util.OGLObject;
 public class Cube3D extends OGLApp<CubeModel> {
     public Cube3D(CubeModel model) {
         super(model);
-        
+
         m_keyCallback = (window, key, scancode, action, mods) -> {
             if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
                 glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
@@ -40,7 +40,7 @@ public class Cube3D extends OGLApp<CubeModel> {
             }
         };
     }
-    
+
     public static void main(String[] args) {
         new Cube3D(new CubeModel()).run("Cube", 640, 640, new Color4D(0.7f, 0.7f, 0.7f, 1));
     }
@@ -109,7 +109,7 @@ class CubeModel extends OGLModel3D {
         drawSide(m_side.setRGBA(1, 0, 1, 1));
 
 
-        
+
         // front
         M.translation(0, 0, 1);
         drawSide(m_side.setRGBA(1, 0, 0, 0.75f));
@@ -143,12 +143,12 @@ class CubeModel extends OGLModel3D {
             m_startTime = theTime;
             m_count = 0;
         }
-        
+
         // animation
         m_xAngle -= m_dxAngle;
         m_yAngle -= m_dyAngle;
     }
-    
+
     public void changeXangle(double delta) {
         m_dxAngle += delta;
     }
@@ -156,12 +156,12 @@ class CubeModel extends OGLModel3D {
     public void changeYangle(double delta) {
         m_dyAngle += delta;
     }
-    
+
     private void drawSide(Side side) {
         // set geometric transformation matrices for all vertices of this model
         glUniformMatrix3fv(u_VM, false, V.mul(M, VM).normal(m_vm).get(m_mat3f));
         glUniformMatrix4fv(u_PVM, false, P.mul(VM, PVM).get(m_mat4f)); // get: stores in and returns m_mat4f
-        
+
         // set color for all vertices of this model
         glUniform4fv(u_COLOR, side.getColor());
 

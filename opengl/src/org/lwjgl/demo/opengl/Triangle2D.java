@@ -19,7 +19,7 @@ public class Triangle2D extends OGLApp<TriangleModel> {
 
     public Triangle2D(TriangleModel model) {
         super(model);
-        
+
         m_keyCallback = (window, key, scancode, action, mods) -> {
             if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
                 glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
@@ -27,7 +27,7 @@ public class Triangle2D extends OGLApp<TriangleModel> {
             if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) model.changeSpeed(-1.0);;
         };
     }
-    
+
     public static void main(String[] args) {
         new Triangle2D(new TriangleModel()).run("Triangle 2D", 640, 640, new Color4D(0.7f, 0.7f, 0.7f, 1));
     }
@@ -71,5 +71,5 @@ class TriangleModel extends OGLModel2D {
     public void changeSpeed(double delta) {
         m_speed += delta;
     }
-    
+
 }

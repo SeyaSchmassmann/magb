@@ -120,15 +120,15 @@ class GearsModel extends OGLModel3D {
             m_startTime = theTime;
             m_count = 0;
         }
-        
+
         // animation
         m_angle += m_deltaDeg;
     }
-    
+
     public void changeSpeed(double delta) {
         m_deltaDeg += delta;
     }
-    
+
     public void changeXangle(double delta) {
         m_xAngle += delta;
     }
@@ -151,7 +151,7 @@ class GearsModel extends OGLModel3D {
         
         private Gear(double innerRadius, double outerRadius, double width, int teeth, double toothDepth, Color4D color) {
             super(color);
-            
+
             allocatePositionBuffer(2000*3); // allocate vertex positions
             allocateNormalBuffer(2000*3);     // allocate vertex normals
             build(innerRadius, outerRadius, width, teeth, toothDepth);
@@ -279,10 +279,10 @@ class GearsModel extends OGLModel3D {
                     ? new Vector3f(x, y, z)
                     : normal.add(x, y, z));
             }
-            
+
             // Normalize
             smoothMap.values().forEach(Vector3f::normalize);
-            
+
             // Apply smooth normals
             for (int i = m_vertexCount - teeth*6; i < m_vertexCount; i++) {
                 Vector3f normal = smoothMap.get(new Vector3f(
@@ -335,5 +335,5 @@ class GearsModel extends OGLModel3D {
         }
 
     }
-    
+
 }
