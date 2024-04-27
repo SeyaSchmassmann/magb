@@ -1,39 +1,21 @@
 package org.lwjgl.demo.opengl;
 
-import org.joml.Vector2d;
+import org.lwjgl.demo.util.Color4D;
 
 class Pentagon implements ObjectToRender {
 
-    private Vector2d[] vertices;
+    @Override
+    public Color4D getColor() {
+        return new Color4D(1, 1, 0, 0.4f);
+    }
 
-    public Pentagon(boolean topAttached) {
-
-        if (topAttached) {
-            vertices = new Vector2d[] {
-                new Vector2d(0, 0.6728163648032f),
-                new Vector2d(-0.8090169943749f, 0.0850311125107f),
-                new Vector2d(-0.5f, -0.8660254037844f),
-                new Vector2d(0.5f, -0.8660254037844f),
-                new Vector2d(0.8090169943749f, 0.0850311125107f),
-            };
-        } else {
-            vertices = new Vector2d[] {
-                new Vector2d(0, -0.6728163648032f),
-                new Vector2d(0.8090169943749f, -0.0850311125107f), // (0.8090169943749, 0.0850311125107)
-                new Vector2d(0.5f, 0.8660254037844f),
-                new Vector2d(-0.5f, 0.8660254037844f),
-                new Vector2d(-0.8090169943749f, -0.0850311125107f),
-            };
-        }
+    @Override
+    public float getFoldingAngle() {
+        return 180 + 142.62f;
     }
 
     @Override
     public ObjectToRenderWithMatrixMoves[] getNeighbors() {
         return new ObjectToRenderWithMatrixMoves[0];
-    }
-
-    @Override
-    public Vector2d[] getVertices() {
-        return vertices;
     }
 }

@@ -1,6 +1,7 @@
 package org.lwjgl.demo.opengl;
 
 import org.joml.Vector2d;
+import org.lwjgl.demo.util.Color4D;
 
 class Hexagon implements ObjectToRender {
 
@@ -8,16 +9,6 @@ class Hexagon implements ObjectToRender {
     private ObjectToRender neighborTopLeft;
     private ObjectToRender neighborBottomLeft;
     private ObjectToRender neighborBottom;
-
-    private Vector2d[] vertices = new Vector2d[] {
-        new Vector2d( 1.0f,  0.0f),
-        new Vector2d( 0.5f, 0.8660254037844f),
-        new Vector2d( -0.5f, 0.8660254037844f),
-        new Vector2d( -1.0f, 0.0f),
-        new Vector2d( -0.5f, -0.8660254037844f),
-        new Vector2d( 0.5f, -0.8660254037844f)
-    };
-
     public Hexagon() { }
 
     public Hexagon(ObjectToRender neighborTop,
@@ -31,6 +22,16 @@ class Hexagon implements ObjectToRender {
     }
 
     @Override
+    public Color4D getColor() {
+        return new Color4D(1, 0, 1, 0.4f);
+    }
+
+    @Override
+    public float getFoldingAngle() {
+        return 180 + 138.19f;
+    }
+
+    @Override
     public ObjectToRenderWithMatrixMoves[] getNeighbors() {
         var halfHeight = 0.8660254037844f;
         var height = halfHeight * 2;
@@ -41,10 +42,5 @@ class Hexagon implements ObjectToRender {
             new ObjectToRenderWithMatrixMoves(neighborTopLeft, new Vector2d(-1.5, halfHeight), new Vector2d(-1, 0), new Vector2d(0.5f, halfHeight), false),
             new ObjectToRenderWithMatrixMoves(neighborBottomLeft, new Vector2d(-1.5, -halfHeight), new Vector2d(-1, 0), new Vector2d(0.5f, -halfHeight), true)
         };
-    }
-
-    @Override
-    public Vector2d[] getVertices() {
-        return vertices;
     }
 }

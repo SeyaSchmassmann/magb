@@ -13,9 +13,12 @@ import static org.lwjgl.opengl.GL20C.glUniformMatrix3fv;
 import static org.lwjgl.opengl.GL20C.glUniformMatrix4fv;
 
 import java.nio.FloatBuffer;
+import java.util.Map;
 
 import org.joml.Matrix3d;
 import org.joml.Matrix4x3d;
+import org.joml.Quaterniond;
+import org.joml.Vector2d;
 import org.joml.Vector3d;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.demo.util.Color4D;
@@ -32,13 +35,16 @@ public class TruncatedIcosahedron extends OGLApp<TruncatedIcosahedronModel> {
                 glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
             } else if (action == GLFW_PRESS || action == GLFW_REPEAT) {
                 switch (key) {
-                    case GLFW_KEY_LEFT:  model.changeYangle(0.125); break;
-                    case GLFW_KEY_RIGHT: model.changeYangle(-0.125); break;
-                    case GLFW_KEY_UP:    model.changeXangle(0.125); break;
-                    case GLFW_KEY_DOWN:  model.changeXangle(-0.125); break;
-                    case GLFW_KEY_PAGE_UP:   model.increaseIndex(); break;
-                    case GLFW_KEY_PAGE_DOWN: model.decreaseIndex(); break;
-                    case GLFW_KEY_SPACE: model.resetRotation(); break;
+                    case GLFW_KEY_LEFT -> model.changeYangle(0.125);
+                    case GLFW_KEY_RIGHT -> model.changeYangle(-0.125);
+                    case GLFW_KEY_UP -> model.changeXangle(0.125);
+                    case GLFW_KEY_DOWN -> model.changeXangle(-0.125);
+                    case GLFW_KEY_PAGE_UP -> model.increaseIndex();
+                    case GLFW_KEY_PAGE_DOWN -> model.decreaseIndex();
+                    case GLFW_KEY_SPACE -> model.resetRotation();
+
+                    case GLFW_KEY_W -> model.increaseScale();
+                    case GLFW_KEY_Y -> model.decreaseScale();
                 }
             }
         };
@@ -46,7 +52,7 @@ public class TruncatedIcosahedron extends OGLApp<TruncatedIcosahedronModel> {
     
     public static void main(String[] args) {
         new TruncatedIcosahedron(new TruncatedIcosahedronModel())
-            .run("TruncatedIcosahedron", 1920 * 1, 1080 * 1, new Color4D(0.7f, 0.7f, 0.7f, 1));
+            .run("TruncatedIcosahedron", 1920 * 2, 1080 * 2, new Color4D(0.7f, 0.7f, 0.7f, 1));
     }
 }
 
@@ -60,7 +66,7 @@ class TruncatedIcosahedronModel extends OGLModel3D {
     private final FloatBuffer m_mat4f = BufferUtils.createFloatBuffer(4*4);
 
     private double m_startTime = System.currentTimeMillis() / 1000.0;
-    private double m_distance = 50.0f;   // camera distance
+    private double m_distance = 30.0f;   // camera distance
     private double m_dxAngle = 0;        // degrees
     private double m_dyAngle = 0;        // degrees
     private double m_xAngle = 0;         // degrees
@@ -71,26 +77,34 @@ class TruncatedIcosahedronModel extends OGLModel3D {
     @Override
     public void init(int width, int height) {
         super.init(width, height);
+        
+        renderObjects = Map.of(
+            Hexagon.class, new HexagonRenderObject(new Color4D(1, 0, 0, 0.4f)),
+            Pentagon.class, new PentagonRenderObject(new Color4D(1, 0, 0, 0.4f))
+        );
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
-
+//https://upload.wikimedia.org/wikipedia/commons/4/45/Geometric_Net_of_a_Truncated_Icosahedron.svg
     public TruncatedIcosahedronModel() {
-        var row9 = new Hexagon(new Pentagon(true), null, null, new Hexagon());
-        var row8 = new Hexagon(new Hexagon(new Pentagon(true), null, null, null), null, row9, new Pentagon(false));
-        var row7 = new Hexagon(new Pentagon(true), row8, null, new Hexagon(null, null, null, new Pentagon(false)));
-        var row6 = new Hexagon(new Hexagon(), null, row7, new Pentagon(false));
-        var row5 = new Hexagon(new Pentagon(true), row6, null, new Hexagon());
-        var row4 = new Hexagon(new Hexagon(), null, row5, new Pentagon(false));
-        var row3 = new Hexagon(new Pentagon(true), row4, null, new Hexagon());
-        var row2 = new Hexagon(new Hexagon(), null, row3, new Pentagon(false));
-        var row1 = new Hexagon(new Pentagon(true), row2, null, new Hexagon());
-        objectToRender = new Hexagon(new Hexagon(), null, row1, new Pentagon(false));
+        var row9 = new Hexagon(new Pentagon(), null, null, new Hexagon());
+        var row8 = new Hexagon(new Hexagon(new Pentagon(), null, null, null), null, row9, new Pentagon());
+        var row7 = new Hexagon(new Pentagon(), row8, null, new Hexagon(null, null, null, new Pentagon()));
+        var row6 = new Hexagon(new Hexagon(), null, row7, new Pentagon());
+        var row5 = new Hexagon(new Pentagon(), row6, null, new Hexagon());
+        var row4 = new Hexagon(new Hexagon(), null, row5, new Pentagon());
+        var row3 = new Hexagon(new Pentagon(), row4, null, new Hexagon());
+        var row2 = new Hexagon(new Hexagon(), null, row3, new Pentagon());
+        var row1 = new Hexagon(new Pentagon(), row2, null, new Hexagon());
+        objectToRender = new Hexagon(new Hexagon(), null, row1, new Pentagon());
     }
 
     private ObjectToRender objectToRender;
     private int currentIndex;
+    private Map<Class<?>, RenderObject> renderObjects;
+
+    private double scaleFactor = 1.0;
 
     @Override
     public void render() {
@@ -107,8 +121,9 @@ class TruncatedIcosahedronModel extends OGLModel3D {
                                      .normalize()
                                      .get(m_vec3f)); // V*m_light
 
-        renderObject(objectToRender, new Matrix4x3d().translation(0, 0, 0), 0, false);
-        renderObject(objectToRender, new Matrix4x3d().translation(0, 0, 0), 0, true);
+        
+        renderObject(objectToRender, new Matrix4x3d().translation(0, 0, -2.3 * scaleFactor).scale(scaleFactor), 0, false);
+        renderObject(objectToRender, new Matrix4x3d().translation(0, 0, -2.3 * scaleFactor).scale(scaleFactor), 0, true);
 
         m_count++;
 
@@ -126,46 +141,48 @@ class TruncatedIcosahedronModel extends OGLModel3D {
 
     private void renderObject(ObjectToRender object, Matrix4x3d matrix, int index, boolean invert) {
         M.set(matrix);
+
         if (invert) {
-            M.rotateX(Math.PI);
+            M.rotateY(Math.PI);
         }
 
-        if (invert && object instanceof Pentagon) {
-            M.rotateZ(Math.PI);
-        }
+        drawSide(renderObjects.get(object.getClass()).setRGBA(object.getColor()));
 
-        drawSide(new RenderObject(invert ? new Color4D(1, 1, 0, 0.4f) : new Color4D(1, 0, 0, 0.4f), object));
-
-        if (invert && object instanceof Pentagon) {
-            M.rotateZ(-Math.PI);
-        }
         if (invert) {
-            M.rotateX(-Math.PI);
+            M.rotateY(-Math.PI);
         }
 
-        var neighbors = object.getNeighbors();
-        for (var neighbor : neighbors) {
+        var i = 0;
+        for (var neighbor : object.getNeighbors()) {
+            i++;
             if (neighbor.object() == null) {
                 continue;
             }
 
-            var currentMatrix = new Matrix4x3d(matrix);
-
+            var newMatrix = new Matrix4x3d(matrix);
             var matrixMoves = neighbor.matrixMoves();
-            currentMatrix.translate(matrixMoves.x, matrixMoves.y, 0);
+            newMatrix.translate(matrixMoves.x, matrixMoves.y, 0);
+
             index++;
             if (index < currentIndex) {
-                var angle = (neighbor.object() instanceof Pentagon ? 180 + 142 : 180 + 138) * deg2rad;
+                var angle = neighbor.object().getFoldingAngle();
                 var rotationTranslation = neighbor.rotationTranslation();
                 var rotationAxis = neighbor.rotationAxis();
-                currentMatrix.translate(-rotationTranslation.x, -rotationTranslation.y, 0);
-                currentMatrix.rotate(neighbor.negativeAngle() ? -angle : angle, rotationAxis.x, rotationAxis.y, 0);
-                currentMatrix.translate(rotationTranslation.x, rotationTranslation.y, 0);
+                var t = new Quaterniond().fromAxisAngleDeg(rotationAxis.x, rotationAxis.y, 0, neighbor.negativeAngle() ? angle : -angle).normalize();
+                newMatrix.rotateAround(t, -rotationTranslation.x, -rotationTranslation.y, 0);
             }
-            renderObject(neighbor.object(), currentMatrix, index, invert);
+
+        
+            if (neighbor.object() instanceof Pentagon) {
+                if (i == 2) {
+                    newMatrix.rotateZ(-Math.PI);
+                }
+            }
+
+            renderObject(neighbor.object(), newMatrix, index, invert);
         }
     }
-    
+
     public void resetRotation() {
         m_dxAngle = 0;
         m_dyAngle = 0;
@@ -186,7 +203,15 @@ class TruncatedIcosahedronModel extends OGLModel3D {
     public void decreaseIndex() {
         currentIndex--;
     }
-    
+
+    public void increaseScale() {
+        scaleFactor += 0.05;
+    }
+
+    public void decreaseScale() {
+        scaleFactor -= 0.05;
+    }
+
     private void drawSide(RenderObject side) {
         // set geometric transformation matrices for all vertices of this model
         glUniformMatrix3fv(u_VM, false, V.mul(M, VM).normal(m_vm).get(m_mat3f));
@@ -201,13 +226,15 @@ class TruncatedIcosahedronModel extends OGLModel3D {
         glDrawArrays(GL_POLYGON, 0, side.getVertexCount());
     }
 
-    private static class RenderObject extends OGLObject {
+    private abstract static class RenderObject extends OGLObject {
         final static int CoordinatesPerVertex = 3;
         
-        protected RenderObject(Color4D color, ObjectToRender objectToRender) {
+        protected abstract Vector2d[] getVertices();
+
+        protected RenderObject(Color4D color) {
             super(color);
             
-            var vertices = objectToRender.getVertices();
+            var vertices = getVertices();
 
             final int nCoordinates = vertices.length * CoordinatesPerVertex;
             
@@ -217,7 +244,7 @@ class TruncatedIcosahedronModel extends OGLModel3D {
 
             // add vertices
             for (var vertex : vertices) {
-                addVertex((float)vertex.x, (float)vertex.y, 0f);
+                addVertex((float)(vertex.x), (float)(vertex.y), 0f);
             }
 
             // bind vertex positions and normals
@@ -236,6 +263,98 @@ class TruncatedIcosahedronModel extends OGLModel3D {
 
             m_vertexCount++;
         }
-    }    
-    
+
+        public RenderObject setRGBA(Color4D color) {
+            m_color.put(0, color.r);
+            m_color.put(1, color.g);
+            m_color.put(2, color.b);
+            m_color.put(3, color.a);
+            return this;
+        }
+    }
+
+    private static class HexagonRenderObject extends RenderObject {
+
+        protected Vector2d[] getVertices() {
+            return new Vector2d[] {
+                new Vector2d( 1.0f,  0.0f),
+                new Vector2d( 0.5f, 0.8660254037844f),
+                new Vector2d( -0.5f, 0.8660254037844f),
+                new Vector2d( -1.0f, 0.0f),
+                new Vector2d( -0.5f, -0.8660254037844f),
+                new Vector2d( 0.5f, -0.8660254037844f)
+            };
+        }
+
+        protected HexagonRenderObject(Color4D color) {
+            super(color);
+        }
+    }
+
+    private static class PentagonRenderObject extends RenderObject {
+
+        protected Vector2d[] getVertices() {
+            return new Vector2d[] {
+                new Vector2d(0, 0.6728163648032f),
+                new Vector2d(-0.8090169943749f, 0.0850311125107f),
+                new Vector2d(-0.5f, -0.8660254037844f),
+                new Vector2d(0.5f, -0.8660254037844f),
+                new Vector2d(0.8090169943749f, 0.0850311125107f),
+            };
+        }
+
+        protected PentagonRenderObject(Color4D color) {
+            super(color);
+        }
+    }
+
+
+    private interface ObjectMoves {
+        void apply(Matrix4x3d matrix, ObjectToRender object);
+    }
+
+/*/
+    private static class HexagonObjectMoves implements ObjectMoves {
+        
+        private float halfHeight = 0.8660254037844f;
+        private float height = halfHeight * 2;
+
+        @Override
+        public void apply(Matrix4x3d matrix, ObjectToRender object, int index) {
+            Vector2d matrixMoves;
+            Vector2d rotationTranslation;
+            Vector2d rotationAxis;
+            boolean negativeAngle;
+
+            switch (index) {
+                case 0:
+                    matrixMoves = new Vector2d(0, height);
+                    rotationTranslation = new Vector2d(0, halfHeight);
+                    rotationAxis = new Vector2d(1, 0);
+                    negativeAngle = false;
+                    break;
+                case 1:
+                    matrixMoves = new Vector2d(0, -height);
+                    rotationTranslation = new Vector2d(0, -halfHeight);
+                    rotationAxis = new Vector2d(1, 0);
+                    negativeAngle = true;
+                case 2:
+                    matrixMoves = new Vector2d(-1.5, halfHeight);
+                    rotationTranslation = new Vector2d(-1, 0);
+                    rotationAxis = new Vector2d(0.5f, halfHeight);
+                    negativeAngle = false;
+                case 3:
+                    matrixMoves = new Vector2d(-1.5, -halfHeight);
+                    rotationTranslation = new Vector2d(-1, 0);
+                    rotationAxis = new Vector2d(0.5f, -halfHeight);
+                    negativeAngle = true;
+            }
+
+            var angle = object.getFoldingAngle();
+            var t = new Quaterniond().fromAxisAngleDeg(rotationAxis.x, rotationAxis.y, 0, negativeAngle ? angle : -angle).normalize();
+            matrix.rotateAround(t, rotationTranslation.x, rotationTranslation.y, 0);
+            matrix.translate(translation.x, translation.y, 0);
+        }
+    }
+*/
 }
