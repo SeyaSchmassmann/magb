@@ -80,4 +80,12 @@ abstract public class OGLObject {
 
         m_normals = null;
     }
+
+    public OGLObject setRGBA(Color4D color) {
+        m_color.put(0, color.r);
+        m_color.put(1, color.g);
+        m_color.put(2, color.b);
+        m_color.put(3, color.a);
+        return this;
+    }
 }

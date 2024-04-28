@@ -1,46 +1,62 @@
 package org.lwjgl.demo.opengl;
 
-import org.joml.Vector2d;
 import org.lwjgl.demo.util.Color4D;
 
 class Hexagon implements ObjectToRender {
 
-    private ObjectToRender neighborTop;
-    private ObjectToRender neighborTopLeft;
-    private ObjectToRender neighborBottomLeft;
-    private ObjectToRender neighborBottom;
-    public Hexagon() { }
+    private static final float HALF_HEIGHT = 0.8660254037844f;
+    
+    private int index;
 
-    public Hexagon(ObjectToRender neighborTop,
-                   ObjectToRender neighborTopLeft,
+    private ObjectToRender neighborTop;
+    private ObjectToRender neighborTopRight;
+    private ObjectToRender neighborBottomRight;
+    private ObjectToRender neighborBottom;
+    private ObjectToRender neighborBottomLeft;
+    private ObjectToRender neighborTopLeft;
+    public Hexagon(int index) {
+        this.index = index;
+    }
+
+    public Hexagon(int index,
+                   ObjectToRender neighborTop,
+                   ObjectToRender neighborTopRight,
+                   ObjectToRender neighborBottomRight,
+                   ObjectToRender neighborBottom,
                    ObjectToRender neighborBottomLeft,
-                   ObjectToRender neighborBottom) {
+                   ObjectToRender neighborTopLeft) {
+        this.index = index;          
         this.neighborTop = neighborTop;
-        this.neighborTopLeft = neighborTopLeft;
-        this.neighborBottomLeft = neighborBottomLeft;
+        this.neighborTopRight = neighborTopRight;
+        this.neighborBottomRight = neighborBottomRight;
         this.neighborBottom = neighborBottom;
+        this.neighborBottomLeft = neighborBottomLeft;
+        this.neighborTopLeft = neighborTopLeft;
     }
 
     @Override
     public Color4D getColor() {
-        return new Color4D(1, 0, 1, 0.4f);
+        return new Color4D(0, 1, 1, 0.4f);
+    }
+
+    public int getIndex() {
+        return index;
     }
 
     @Override
-    public float getFoldingAngle() {
-        return 180 + 138.19f;
+    public float distanceToCenter() {
+        return HALF_HEIGHT;
     }
 
     @Override
     public ObjectToRenderWithMatrixMoves[] getNeighbors() {
-        var halfHeight = 0.8660254037844f;
-        var height = halfHeight * 2;
-
         return new ObjectToRenderWithMatrixMoves[] {
-            new ObjectToRenderWithMatrixMoves(neighborTop, new Vector2d(0, height), new Vector2d(0, halfHeight), new Vector2d(1, 0), false),
-            new ObjectToRenderWithMatrixMoves(neighborBottom, new Vector2d(0, -height), new Vector2d(0, -halfHeight), new Vector2d(1, 0), true),
-            new ObjectToRenderWithMatrixMoves(neighborTopLeft, new Vector2d(-1.5, halfHeight), new Vector2d(-1, 0), new Vector2d(0.5f, halfHeight), false),
-            new ObjectToRenderWithMatrixMoves(neighborBottomLeft, new Vector2d(-1.5, -halfHeight), new Vector2d(-1, 0), new Vector2d(0.5f, -halfHeight), true)
+            new ObjectToRenderWithMatrixMoves(neighborTop, matrix -> matrix.rotateZ(Math.toRadians(-0)).translate(0, HALF_HEIGHT, 0)),
+            new ObjectToRenderWithMatrixMoves(neighborTopRight, matrix -> matrix.rotateZ(Math.toRadians(-60)).translate(0, HALF_HEIGHT, 0)),
+            new ObjectToRenderWithMatrixMoves(neighborBottomRight, matrix -> matrix.rotateZ(Math.toRadians(-120)).translate(0, HALF_HEIGHT, 0)),
+            new ObjectToRenderWithMatrixMoves(neighborBottom, matrix -> matrix.rotateZ(Math.toRadians(-180)).translate(0, HALF_HEIGHT, 0)),
+            new ObjectToRenderWithMatrixMoves(neighborBottomLeft, matrix -> matrix.rotateZ(Math.toRadians(-240)).translate(0, HALF_HEIGHT, 0)),
+            new ObjectToRenderWithMatrixMoves(neighborTopLeft, matrix -> matrix.rotateZ(Math.toRadians(-300)).translate(0, HALF_HEIGHT, 0)),
         };
     }
 }
