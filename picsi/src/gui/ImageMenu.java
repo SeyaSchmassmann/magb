@@ -4,6 +4,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.MenuItem;
 
 import imageprocessing.Cropping;
+import imageprocessing.binary.FloodFillingConverter;
+import imageprocessing.binary.HoughTransform;
+import imageprocessing.binary.MorphologicFilter;
+import imageprocessing.binary.OtsuThresholdConverter;
 import imageprocessing.colors.ChannelRGBA;
 import imageprocessing.colors.DitheringConverter;
 import imageprocessing.colors.GrayScaleConverter;
@@ -32,11 +36,18 @@ public class ImageMenu extends UserMenu {
         add("Dithering",                         SWT.F3,         new DitheringConverter());
         add("Rotator",                           SWT.F4,         new Rotator());
 
+        add("Otsu Threshold",                    SWT.F5,         new OtsuThresholdConverter());
+        add("Flood Filling",                     SWT.F6,         new FloodFillingConverter());
+        add("Morphologic Filter",                SWT.F7,         new MorphologicFilter());
+        add("Hough Transform",                   SWT.F8,         new HoughTransform());
+
         UserMenu channels = addMenu("Channel");
         channels.add("R\tCtrl+1",                SWT.CTRL | '1', new ChannelRGBA(0));
         channels.add("G\tCtrl+2",                SWT.CTRL | '2', new ChannelRGBA(1));
         channels.add("B\tCtrl+3",                SWT.CTRL | '3', new ChannelRGBA(2));
         channels.add("A\tCtrl+4",                SWT.CTRL | '4', new ChannelRGBA(3));
+
+
 
         // TODO add here further image processing entries (they are inserted into the Image menu)
     }

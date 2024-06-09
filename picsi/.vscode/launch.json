@@ -9,6 +9,7 @@
             "name": "Picsi",
             "request": "launch",
             "mainClass": "main.Picsi",
+            "console": "internalConsole",
             "projectName": "picsi-student"
         }
     ]
