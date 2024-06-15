@@ -18,14 +18,11 @@ public class ParticleAnalyzer implements IImageProcessor {
         new Point(0, -1)
     };
     
-	public static boolean[][] MORPHOLOGY_STRUCTURE = new boolean[][]  {{ false, true, false},{true, true, true},{false, true, false}};
-    // {
-	// 	{ false, false, true, false, false},
-	// 	{ false, true , true, true , false},
-	// 	{ true,  true,  true, true,  true},
-	// 	{ false, true,  true, true,  false},
-	// 	{ false, false, true, false, false}
-    // };
+	private static boolean[][] MORPHOLOGY_STRUCTURE = new boolean[][] {
+        { false, true, false },
+        { true,  true, true  },
+        { false, true, false }
+    };
     private static int MORPHOLOGY_STRUCTURE_DIMENSION = MORPHOLOGY_STRUCTURE.length / 2;
     
     private static final int COLOR_GREEN = 0x00FF00;
@@ -121,11 +118,13 @@ public class ParticleAnalyzer implements IImageProcessor {
                 threshold = i;
             }
 
-            if (i < 128) {
+            if (i < histogram.length / 2) {
                 darkPixels += histogram[i];
             }
         }
 
+        // naive approach to determine if small values are foreground: check wheter the dark or light pixels dominate the image
+        // if the number of dark pixels ([0 - 128]) is less than half of the total pixels, then small values are foreground
         var smallValuesAreForeground = darkPixels <= (totalPixels / 2);
         
         return new OtsuThreshold(threshold, smallValuesAreForeground);
@@ -212,48 +211,64 @@ public class ParticleAnalyzer implements IImageProcessor {
 
     private static Particle[] floodFillAndParticleAnalyzation(ImageData imageData) {
         var nextLabel = 2;
-        
         final var particle = new ArrayList<Particle>();
-        
+    
         for (int y = 0; y < imageData.height; y++) {
             for (int x = 0; x < imageData.width; x++) {
-
                 if (imageData.getPixel(x, y) == BINARY_COLOR_FOREGROUND) {
                     var queue = new LinkedList<Point>();
                     queue.add(new Point(x, y));
                     imageData.setPixel(x, y, nextLabel);
                     var box = new BoundingBox(x, y);
-                    
+                    int perimeter = 0;
+    
                     while (!queue.isEmpty()) {
                         var current = queue.poll();
-
+    
                         for (var delta : NEIGHBOR_MOVES_MATRIX) {
                             var nx = current.x + delta.x;
                             var ny = current.y + delta.y;
 
-                            if (nx >= 0 && nx < imageData.width && ny >= 0 && ny < imageData.height
-                                && imageData.getPixel(nx, ny) == BINARY_COLOR_FOREGROUND) {
-                                queue.add(new Point(nx, ny));
-                                imageData.setPixel(nx, ny, nextLabel);
-                                box.updateBoundingBox(nx, ny);
+                            if (nx >= 0 && nx < imageData.width && ny >= 0 && ny < imageData.height) {
+                                if (imageData.getPixel(nx, ny) == BINARY_COLOR_FOREGROUND) {
+                                    queue.add(new Point(nx, ny));
+                                    imageData.setPixel(nx, ny, nextLabel);
+                                    box.updateBoundingBox(nx, ny);
+                                }
                             }
                         }
-                    }
-                    var moment = calculateMoments(box, nextLabel, imageData);
 
+                        if (isOuterContourPixel(current.x, current.y, imageData)) {
+                            perimeter++;
+                        }
+                    }
+    
+                    var moment = calculateMoments(box, nextLabel, imageData);
+    
                     if (moment.area < THRESHOLD_PARTICLE_AREA) {
                         continue;
                     }
-
-                    var perimeter = calcualtePerimeter(box, nextLabel, imageData);
+    
                     var circularity = calculateCircularity(moment.area, perimeter);
                     particle.add(new Particle(nextLabel - 1, box, moment.area, moment.centerOfMass, moment.orientation, moment.eccentricity, perimeter, circularity));
                     nextLabel++;
                 }
             }
         }
-        
+    
         return particle.toArray(new Particle[0]);
+    }
+    
+    private static boolean isOuterContourPixel(int x, int y, ImageData imageData) {
+        for (var delta : NEIGHBOR_MOVES_MATRIX) {
+            var nx = x + delta.x;
+            var ny = y + delta.y;
+    
+            if (nx < 0 || nx >= imageData.width || ny < 0 || ny >= imageData.height || imageData.getPixel(nx, ny) == BINARY_COLOR_BACKGROUND) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static class BoundingBox {
@@ -279,31 +294,6 @@ public class ParticleAnalyzer implements IImageProcessor {
     }
     
     private static record Particle(int label, BoundingBox boundingBox, int area, Point centerOfMass, double orientation, double eccentricity, int perimeter, double circularity) { }
-
-    private static int calcualtePerimeter(BoundingBox boundingBox, int label, ImageData imageData) {
-        var perimeter = 0;
-
-        for (var y = boundingBox.y1; y <= boundingBox.y2; y++) {
-            for (var x = boundingBox.x1; x <= boundingBox.x2; x++) {
-                if (imageData.getPixel(x, y) == label) {
-                    var isBoundary = false;
-                    for (var move : NEIGHBOR_MOVES_MATRIX) {
-                        var nx = x + move.x;
-                        var ny = y + move.y;
-                        if (nx < 0 || nx >= imageData.width || ny < 0 || ny >= imageData.height || imageData.getPixel(nx, ny) != label) {
-                            isBoundary = true;
-                            break;
-                        }
-                    }
-                    if (isBoundary) {
-                        perimeter++;
-                    }
-                }
-            }
-        }
-    
-        return perimeter;
-    }
 
     private static double calculateCircularity(double area, double perimeter) {
         return (4 * Math.PI * area) / (perimeter * perimeter);
