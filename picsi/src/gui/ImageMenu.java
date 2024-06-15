@@ -4,7 +4,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.MenuItem;
 
 import imageprocessing.Cropping;
-import imageprocessing.binary.FloodFillingConverter;
+import imageprocessing.ParticleAnalyzer;
 import imageprocessing.binary.HoughTransform;
 import imageprocessing.binary.MorphologicFilter;
 import imageprocessing.binary.OtsuThresholdConverter;
@@ -37,7 +37,7 @@ public class ImageMenu extends UserMenu {
         add("Rotator",                           SWT.F4,         new Rotator());
 
         add("Otsu Threshold",                    SWT.F5,         new OtsuThresholdConverter());
-        add("Flood Filling",                     SWT.F6,         new FloodFillingConverter());
+        add("Particle Analyzer",                 SWT.F6,         new ParticleAnalyzer());
         add("Morphologic Filter",                SWT.F7,         new MorphologicFilter());
         add("Hough Transform",                   SWT.F8,         new HoughTransform());
 

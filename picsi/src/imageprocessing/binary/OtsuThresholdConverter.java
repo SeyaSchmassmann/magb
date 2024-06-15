@@ -19,7 +19,7 @@ public class OtsuThresholdConverter implements IImageProcessor {
 
     @Override
     public ImageData run(ImageData inData, int imageType) {
-        final int threshold = otsuThreshold(inData);
+        final int threshold = otsuThreshold(inData).threshold;
         
         return binarization(inData, threshold, false, true);
     }
@@ -39,15 +39,8 @@ public class OtsuThresholdConverter implements IImageProcessor {
         return outData;
     }
     
-    public static int otsuThreshold(ImageData inData) {
-        int[] histogram = new int[256];
-
-        for (int y = 0; y < inData.height; y++) {
-            for (int x = 0; x < inData.width; x++) {
-                int gray = 0xFF & inData.getPixel(x, y);
-                histogram[gray]++;
-            }
-        }
+    public static OtsuThreshold otsuThreshold(ImageData inData) {
+        int[] histogram = ImageProcessing.histogram(inData, 256);
         
         int total = inData.width * inData.height;
         double sum = 0;
@@ -60,6 +53,7 @@ public class OtsuThresholdConverter implements IImageProcessor {
         int wF = 0;
         double varMax = 0;
         int threshold = 0;
+        int darkPixels = 0;
         
         for (int i = 0; i < 256; i++) {
             wB += histogram[i];
@@ -80,9 +74,18 @@ public class OtsuThresholdConverter implements IImageProcessor {
                 varMax = varBetween;
                 threshold = i;
             }
+
+            if (i < 128) {
+                darkPixels += histogram[i];
+            }
         }
+
+        var totalPixels = inData.width * inData.height;
+        var smallValuesAreForeground = darkPixels <= (totalPixels / 2);
         
-        return threshold;
+        return new OtsuThreshold(threshold, smallValuesAreForeground);
     }
+
+    public static record OtsuThreshold(int threshold, boolean smallValuesAreForeground) {}
 
 }

@@ -30,7 +30,7 @@ public class HoughTransform implements IImageProcessor {
         if (imageType != Picsi.IMAGE_TYPE_GRAY){
             binImg = GrayScaleConverter.convert(binImg, imageType);
         }
-        final int threshold = OtsuThresholdConverter.otsuThreshold(binImg);
+        final int threshold = OtsuThresholdConverter.otsuThreshold(binImg).threshold();
         binImg = OtsuThresholdConverter.binarization(binImg, threshold, true, true);
         boolean[][] s_square4 = new boolean[][] {{ true, true, true, true},{true, true, true, true},{true, true, true, true},{true, true, true, true}};
         binImg = MorphologicFilter.contour(binImg, Picsi.IMAGE_TYPE_BINARY, s_square4, 1, 1, true);
