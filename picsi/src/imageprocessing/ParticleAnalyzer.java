@@ -18,16 +18,16 @@ public class ParticleAnalyzer implements IImageProcessor {
         new Point(0, -1)
     };
     
-	private static boolean[][] MORPHOLOGY_STRUCTURE = new boolean[][] {
+	private static final boolean[][] MORPHOLOGY_STRUCTURE = new boolean[][] {
         { false, true, false },
         { true,  true, true  },
         { false, true, false }
     };
-    private static int MORPHOLOGY_STRUCTURE_DIMENSION = MORPHOLOGY_STRUCTURE.length / 2;
+    private static final int MORPHOLOGY_STRUCTURE_DIMENSION = MORPHOLOGY_STRUCTURE.length / 2;
     
     private static final int COLOR_GREEN = 0x00FF00;
-    private static final int COLOR_RED = 0xFF0000;
-    private static final int COLOR_WHITE = 0xFFFFFF;
+    private static final int COLOR_BLUE = 0xFF0000;
+    private static final int COLOR_RED = 0x0000FF;
 
     private static final int BINARY_COLOR_BACKGROUND = 0;
     private static final int BINARY_COLOR_FOREGROUND = 1;
@@ -53,6 +53,7 @@ public class ParticleAnalyzer implements IImageProcessor {
         }
         
         targetImage = closing(targetImage);
+        fillHolesInsideBorder(targetImage);
 
         final var particles = floodFillAndParticleAnalyzation(targetImage);
         final var falseColorImage = falseColor(targetImage, particles.length + 1);
@@ -209,6 +210,65 @@ public class ParticleAnalyzer implements IImageProcessor {
         return targetImage;
     }
 
+     private static void fillHolesInsideBorder(ImageData imageData) {
+        var tempColor = -1;
+        int width = imageData.width;
+        int height = imageData.height;
+
+        // Flood fill the background from the borders with a temporary color
+        for (int y = 0; y < height; y++) {
+            floodFill(imageData, 0, y, BINARY_COLOR_BACKGROUND, tempColor);
+            floodFill(imageData, width - 1, y, BINARY_COLOR_BACKGROUND, tempColor);
+        }
+        for (int x = 0; x < width; x++) {
+            floodFill(imageData, x, 0, BINARY_COLOR_BACKGROUND, tempColor);
+            floodFill(imageData, x, height - 1, BINARY_COLOR_BACKGROUND, tempColor);
+        }
+
+        // Identify and fill the holes with foreground color
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (imageData.getPixel(x, y) == BINARY_COLOR_BACKGROUND) {
+                    floodFill(imageData, x, y, BINARY_COLOR_BACKGROUND, BINARY_COLOR_FOREGROUND);
+                }
+            }
+        }
+
+        // Revert the temporary color back to the original background color
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (imageData.getPixel(x, y) == tempColor) {
+                    imageData.setPixel(x, y, BINARY_COLOR_BACKGROUND);
+                }
+            }
+        }
+    }
+
+    private static BoundingBox floodFill(ImageData imageData, int x, int y, int targetColor, int replacementColor) {
+        var queue = new LinkedList<Point>();
+        queue.add(new Point(x, y));
+        imageData.setPixel(x, y, replacementColor);
+        var box = new BoundingBox(x, y);
+
+        while (!queue.isEmpty()) {
+            var current = queue.poll();
+
+            for (var delta : NEIGHBOR_MOVES_MATRIX) {
+                var nx = current.x + delta.x;
+                var ny = current.y + delta.y;
+ 
+                if (nx >= 0 && nx < imageData.width && ny >= 0 && ny < imageData.height) {
+                    if (imageData.getPixel(nx, ny) == targetColor) {
+                        queue.add(new Point(nx, ny));
+                        imageData.setPixel(nx, ny, replacementColor);
+                        box.updateBoundingBox(nx, ny);
+                    }
+                }
+            }
+        }
+        return box;
+    }
+
     private static Particle[] floodFillAndParticleAnalyzation(ImageData imageData) {
         var nextLabel = 2;
         final var particle = new ArrayList<Particle>();
@@ -216,41 +276,26 @@ public class ParticleAnalyzer implements IImageProcessor {
         for (int y = 0; y < imageData.height; y++) {
             for (int x = 0; x < imageData.width; x++) {
                 if (imageData.getPixel(x, y) == BINARY_COLOR_FOREGROUND) {
-                    var queue = new LinkedList<Point>();
-                    queue.add(new Point(x, y));
-                    imageData.setPixel(x, y, nextLabel);
-                    var box = new BoundingBox(x, y);
-                    int perimeter = 0;
-    
-                    while (!queue.isEmpty()) {
-                        var current = queue.poll();
-    
-                        for (var delta : NEIGHBOR_MOVES_MATRIX) {
-                            var nx = current.x + delta.x;
-                            var ny = current.y + delta.y;
+                    var box = floodFill(imageData, x, y, BINARY_COLOR_FOREGROUND, nextLabel);
 
-                            if (nx >= 0 && nx < imageData.width && ny >= 0 && ny < imageData.height) {
-                                if (imageData.getPixel(nx, ny) == BINARY_COLOR_FOREGROUND) {
-                                    queue.add(new Point(nx, ny));
-                                    imageData.setPixel(nx, ny, nextLabel);
-                                    box.updateBoundingBox(nx, ny);
-                                }
-                            }
-                        }
-
-                        if (isOuterContourPixel(current.x, current.y, imageData)) {
-                            perimeter++;
-                        }
-                    }
-    
+                    var perimeter = calculatePerimeter(imageData, x, y, nextLabel);
                     var moment = calculateMoments(box, nextLabel, imageData);
     
                     if (moment.area < THRESHOLD_PARTICLE_AREA) {
                         continue;
                     }
-    
-                    var circularity = calculateCircularity(moment.area, perimeter);
-                    particle.add(new Particle(nextLabel - 1, box, moment.area, moment.centerOfMass, moment.orientation, moment.eccentricity, perimeter, circularity));
+
+                    particle.add(new Particle(nextLabel - 1,
+                                              box,
+                                              moment.area,
+                                              moment.centerOfMass,
+                                              moment.orientation,
+                                              moment.eccentricity,
+                                              perimeter,
+                                              perimeter * 0.95,
+                                              calculateCircularity(moment.area, perimeter * 0.95),
+                                              calculateCircularity(moment.area, perimeter)));
+                    
                     nextLabel++;
                 }
             }
@@ -258,17 +303,43 @@ public class ParticleAnalyzer implements IImageProcessor {
     
         return particle.toArray(new Particle[0]);
     }
+
+    private static int calculatePerimeter(ImageData imageData, int x, int y, int label) {
+        int perimeter = 0;
+        int width = imageData.width;
+        int height = imageData.height;
     
-    private static boolean isOuterContourPixel(int x, int y, ImageData imageData) {
-        for (var delta : NEIGHBOR_MOVES_MATRIX) {
-            var nx = x + delta.x;
-            var ny = y + delta.y;
+        boolean[][] visited = new boolean[width][height];
+        var queue = new LinkedList<Point>();
+        queue.add(new Point(x, y));
+        visited[x][y] = true;
     
-            if (nx < 0 || nx >= imageData.width || ny < 0 || ny >= imageData.height || imageData.getPixel(nx, ny) == BINARY_COLOR_BACKGROUND) {
-                return true;
+        while (!queue.isEmpty()) {
+            var current = queue.poll();
+            var isPerimeter = false;
+    
+            for (var delta : NEIGHBOR_MOVES_MATRIX) {
+                var nx = current.x + delta.x;
+                var ny = current.y + delta.y;
+    
+                if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                    if (imageData.getPixel(nx, ny) != label) {
+                        isPerimeter = true;
+                    } else if (!visited[nx][ny]) {
+                        queue.add(new Point(nx, ny));
+                        visited[nx][ny] = true;
+                    }
+                } else {
+                    isPerimeter = true;
+                }
+            }
+    
+            if (isPerimeter) {
+                perimeter++;
             }
         }
-        return false;
+    
+        return perimeter;
     }
 
     private static class BoundingBox {
@@ -293,7 +364,7 @@ public class ParticleAnalyzer implements IImageProcessor {
         }
     }
     
-    private static record Particle(int label, BoundingBox boundingBox, int area, Point centerOfMass, double orientation, double eccentricity, int perimeter, double circularity) { }
+    private static record Particle(int label, BoundingBox boundingBox, int area, Point centerOfMass, double orientation, double eccentricity, int perimeter, double perimeterCorrected, double circularity, double circularityCorrected) { }
 
     private static double calculateCircularity(double area, double perimeter) {
         return (4 * Math.PI * area) / (perimeter * perimeter);
@@ -332,11 +403,8 @@ public class ParticleAnalyzer implements IImageProcessor {
         var mu11 = (double) sumXY / count - centerX * centerY;
 
         var orientation = 0.5 * Math.atan2(2 * mu11, (mu20 - mu02));
-        var commonTerm = Math.sqrt((mu20 - mu02) * (mu20 - mu02) + 4 * mu11 * mu11);
-        var majorAxis = Math.sqrt(2 * (mu20 + mu02 + commonTerm));
-        var minorAxis = Math.sqrt(2 * (mu20 + mu02 - commonTerm));
 
-        var eccentricity = (majorAxis != 0) ? Math.sqrt(1 - (minorAxis * minorAxis) / (majorAxis * majorAxis)) : 0.0;
+        var eccentricity = ((mu20 - mu02) * (mu20 - mu02) + 4 * mu11 * mu11) / (mu20 + mu02) / (mu20 + mu02);
 
         return new MomentResult(count, new Point((int) centerX, (int) centerY), orientation, eccentricity);
     }
@@ -358,23 +426,24 @@ public class ParticleAnalyzer implements IImageProcessor {
     }
 
     private static void printParticles(Particle[] particles) {
-        System.out.println("| Label | Center of Mass (x,y) | Bounding Box (x1,y1),(x2,y2)    | Eccentricity | Orientation  | Area         | Perimeter    | Perimeter (normalized) | Circularity  |");
-        System.out.println("|-------|----------------------|---------------------------------|--------------|--------------|--------------|--------------|------------------------|--------------|");
+        System.out.println("| Label | Center of Mass (x,y) | Bounding Box (x1,y1),(x2,y2)    | Eccentricity | Orientation (deg) | Area         | Perimeter    | Perimeter (corrected) | Circularity  | Circularity (corrected) |");
+        System.out.println("|-------|----------------------|---------------------------------|--------------|-------------------|--------------|--------------|-----------------------|--------------|-------------------------|");
 
         for (var particle : particles) {
             final var centerOfMass = particle.centerOfMass;
             final var box = particle.boundingBox;
 
-            System.out.printf("| %-5d |       %6d, %6d | (%6d,%6d),(%6d,%6d) | %12.6f | %12.6f | %12d | %12d |           %12.6f | %12.6f |%n",
+            System.out.printf("| %-5d |       %6d, %6d | (%6d,%6d),(%6d,%6d) | %12.6f |      %12.6f | %12d | %12d |          %12.6f | %12.6f |            %12.6f |%n",
                     particle.label(),
                     centerOfMass.x, centerOfMass.y,
                     box.x1, box.y1, box.x2, box.y2,
                     particle.eccentricity,
-                    particle.orientation,
+                    Math.toDegrees(particle.orientation),
                     particle.area,
                     particle.perimeter,
-                    particle.perimeter * 0.95,
-                    particle.circularity);
+                    particle.perimeterCorrected,
+                    particle.circularity,
+                    particle.circularityCorrected);
         }
         System.out.println("");
     }
@@ -385,19 +454,19 @@ public class ParticleAnalyzer implements IImageProcessor {
 
             // Draw bounding box
             for (var x = box.x1; x <= box.x2; x++) {
-                image.setPixel(x, box.y1, COLOR_RED);
-                image.setPixel(x, box.y2, COLOR_RED);
+                image.setPixel(x, box.y1, COLOR_BLUE);
+                image.setPixel(x, box.y2, COLOR_BLUE);
             }
             for (var y = box.y1; y <= box.y2; y++) {
-                image.setPixel(box.x1, y, COLOR_RED);
-                image.setPixel(box.x2, y, COLOR_RED);
+                image.setPixel(box.x1, y, COLOR_BLUE);
+                image.setPixel(box.x2, y, COLOR_BLUE);
             }
 
             // Draw center of mass
             var centerOfMass = particle.centerOfMass;
             for (var x = centerOfMass.x - 1; x <= centerOfMass.x + 1; x++) {
                 for (var y = centerOfMass.y - 1; y <= centerOfMass.y + 1; y++) {
-                    image.setPixel(x, y, COLOR_WHITE);
+                    image.setPixel(x, y, COLOR_RED);
                 }
             }
 
