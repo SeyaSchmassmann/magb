@@ -60,7 +60,7 @@ public class HoughTransform implements IImageProcessor {
         Arrays.sort(flattenedArray);
 
         var thresholdIndex = (int) Math.ceil(0.99 * flattenedArray.length);
-        var threshold = flattenedArray[thresholdIndex - 1];
+        var threshold = 10;// flattenedArray[thresholdIndex - 1];
 
         System.out.println("thresholdIndex: " + thresholdIndex);
         System.out.println("Threshold: " + threshold);
@@ -201,7 +201,7 @@ public class HoughTransform implements IImageProcessor {
         var points = new ArrayList<Point>();
 
         // Draw bounding boxes around detected lines
-        for (Line l1 : lines2) {
+        /*for (Line l1 : lines2) {
             for (Line l2 : lines2) {
                 if (l1 != l2) {
                     var point = intersectionPoint(l1, l2 , w, h);
@@ -236,7 +236,7 @@ public class HoughTransform implements IImageProcessor {
             outData.setPixel(boundingBoxX1, y, outData.palette.getPixel(blue));
             outData.setPixel(boundingBoxX2, y, outData.palette.getPixel(blue));
         }
-
+*/
         return outData;
     }
 

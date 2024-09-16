@@ -211,7 +211,7 @@ public class ParticleAnalyzer implements IImageProcessor {
     }
 
      private static void fillHolesInsideBorder(ImageData imageData) {
-        var tempColor = -1;
+        var tempColor = 255;
         int width = imageData.width;
         int height = imageData.height;
 
