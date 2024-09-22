@@ -19,6 +19,7 @@ public class ImageFiles {
 	public static int IMAGE_PBM = SWT.IMAGE_UNDEFINED; 
 	public static int IMAGE_PGM = SWT.IMAGE_UNDEFINED;
 	public static int IMAGE_PPM = SWT.IMAGE_UNDEFINED;
+    public static int IMAGE_RAW = SWT.IMAGE_UNDEFINED;
 
 	private static final String[] OPEN_FILTER_EXTENSIONS = new String[] {
 			"*.bmp;*.gif;*.ico;*.jfif;*.jpeg;*.jpg;*.png;*.tif;*.tiff",
@@ -63,6 +64,7 @@ public class ImageFiles {
 		IMAGE_PBM = registerImageFile("PBM", "pbm", PNM.class, true, Picsi.IMAGE_TYPE_BINARY);
 		IMAGE_PGM = registerImageFile("PGM", "pgm", PNM.class, true, Picsi.IMAGE_TYPE_GRAY);
 		IMAGE_PPM = registerImageFile("PPM", "ppm", PNM.class, true, Picsi.IMAGE_TYPE_RGB);
+        registerImageFile("RAW", "raw", Raw.class, true, 0);
 		// TODO call registerImageFile(...) for each user specific image file once
 	}
 	

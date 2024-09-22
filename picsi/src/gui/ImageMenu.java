@@ -5,6 +5,7 @@ import org.eclipse.swt.widgets.MenuItem;
 
 import imageprocessing.Cropping;
 import imageprocessing.ParticleAnalyzer;
+import imageprocessing.bayerPattern.DebayeringConverter;
 import imageprocessing.binary.HoughTransform;
 import imageprocessing.binary.MorphologicFilter;
 import imageprocessing.binary.OtsuThresholdConverter;
@@ -41,13 +42,14 @@ public class ImageMenu extends UserMenu {
         add("Morphologic Filter",                SWT.F7,         new MorphologicFilter());
         add("Hough Transform",                   SWT.F8,         new HoughTransform());
 
+        var bayerPatternMenu = addMenu("Bayern Pattern");
+        bayerPatternMenu.add("Debayering",       SWT.F9,         new DebayeringConverter());
+
         UserMenu channels = addMenu("Channel");
         channels.add("R\tCtrl+1",                SWT.CTRL | '1', new ChannelRGBA(0));
         channels.add("G\tCtrl+2",                SWT.CTRL | '2', new ChannelRGBA(1));
         channels.add("B\tCtrl+3",                SWT.CTRL | '3', new ChannelRGBA(2));
         channels.add("A\tCtrl+4",                SWT.CTRL | '4', new ChannelRGBA(3));
-
-
 
         // TODO add here further image processing entries (they are inserted into the Image menu)
     }

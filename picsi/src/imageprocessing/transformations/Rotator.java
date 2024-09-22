@@ -1,6 +1,5 @@
 package imageprocessing.transformations;
 
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.ImageData;
 
 import imageprocessing.IImageProcessor;
