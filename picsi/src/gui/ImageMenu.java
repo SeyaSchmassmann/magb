@@ -13,6 +13,7 @@ import imageprocessing.colors.ChannelRGBA;
 import imageprocessing.colors.DitheringConverter;
 import imageprocessing.colors.GrayScaleConverter;
 import imageprocessing.colors.Inverter;
+import imageprocessing.patternmatching.PatternMatching;
 import imageprocessing.transformations.Rotator;
 
 /**
@@ -51,6 +52,7 @@ public class ImageMenu extends UserMenu {
         channels.add("B\tCtrl+3",                SWT.CTRL | '3', new ChannelRGBA(2));
         channels.add("A\tCtrl+4",                SWT.CTRL | '4', new ChannelRGBA(3));
 
+        add("Pattern Matching",                  SWT.F10,        new PatternMatching());
         // TODO add here further image processing entries (they are inserted into the Image menu)
     }
 }
