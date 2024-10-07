@@ -120,20 +120,33 @@ public class PatternMatching implements IImageProcessor {
 		final int k = ph*pw;
 		BoundedPQ<PMResult> results = new BoundedPQ<>(nResults);
         
+        
+        double r_ = 0.0;
+        for (int yRoi = 0; yRoi < ph; yRoi++) {
+            for (int xRoi = 0; xRoi < pw; xRoi++) {
+                int q = pattern.getPixel(xRoi, yRoi);
+                r_ += q;
+            }
+        }
+        r_ /= k;
+
+        
         var standardDeviation = 0.0;
         for (int yRoi = 0; yRoi < ph; yRoi++) {
             for (int xRoi = 0; xRoi < pw; xRoi++) {
-                var difference = inData.getPixel(xRoi, yRoi) - pattern.getPixel(xRoi, yRoi);
+                var difference = pattern.getPixel(xRoi, yRoi) - r_;
                 standardDeviation += difference * difference;
             }
         }
+        standardDeviation = Math.sqrt(standardDeviation / k);
+
+
 
         for (int y = 0; y < inData.height - ph; y++) {
             for (int x = 0; x < inData.width - pw; x++) {
                 double sumIR = 0.0;
                 double i_ = 0.0;
                 double i2 = 0.0;
-                double r_ = 0.0;
                 
                 for (int yRoi = 0; yRoi < ph; yRoi++) {
                     for (int xRoi = 0; xRoi < pw; xRoi++) {
@@ -142,14 +155,12 @@ public class PatternMatching implements IImageProcessor {
                         sumIR += p*q;
                         i_ += p;
                         i2 += p*p;
-                        r_ += q;
                     }
                 }
 
                 i_ /= k;
-                r_ /= k;
                 
-                var cl = (sumIR - k*i_*r_) / ( Math.sqrt((i2 - k*i_*i_)) * standardDeviation * Math.sqrt(k) );
+                var cl = (sumIR - k*i_*r_) / ( Math.sqrt(i2 - k*i_*i_) * standardDeviation * Math.sqrt(k) );
 
                 results.add(new PMResult(new ROI(inData, new Rectangle(x, y, pw, ph)), cl));
             }
