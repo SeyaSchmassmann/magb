@@ -53,6 +53,8 @@ public class ImageMenu extends UserMenu {
         channels.add("A\tCtrl+4",                SWT.CTRL | '4', new ChannelRGBA(3));
 
         add("Pattern Matching",                  SWT.F10,        new PatternMatching());
+        add("Gauss Filter",                      SWT.F11,        new imageprocessing.filter.GaussFilter());
+        add("Median Filter",                     SWT.F12,        new imageprocessing.filter.MedianFilter());
         // TODO add here further image processing entries (they are inserted into the Image menu)
     }
 }
